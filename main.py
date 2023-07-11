@@ -1,5 +1,22 @@
 import requests
-import json
+from flask import Flask, request, jsonify, render_template
+
+app = Flask(__name__, static_url_path='')
+
+@app.route("/get_weather", methods=["GET"])
+def get_weather():
+    api_key = "e061673116b23f148c7119f3bbd9cf34"
+    location = request.args.get("location")
+    weather_data = get_weather_data(api_key, location)
+    if "current" in weather_data:
+        weather = parse_weather_data(weather_data)
+        return jsonify(weather)
+    else:
+        return jsonify({"error": "Error retrieving weather data. Please try again."}), 400
+
+@app.route("/")
+def index():
+    return render_template("main.html")
 
 def get_weather_data(api_key, location):
     url = f"http://api.weatherstack.com/current?access_key={api_key}&query={location}"
@@ -16,22 +33,5 @@ def parse_weather_data(data):
     }
     return weather
 
-def display_weather(weather):
-    print("Current Weather Conditions:")
-    print(f"Temperature: {weather['temperature']}°C")
-    print(f"Humidity: {weather['humidity']}%")
-    print(f"Wind Speed: {weather['wind_speed']} km/h")
-    print(f"Conditions: {weather['conditions']}")
-
-def main():
-    api_key = "e061673116b23f148c7119f3bbd9cf34"
-    location = input("Enter location: ")
-    weather_data = get_weather_data(api_key, location)
-    if "current" in weather_data:
-        weather = parse_weather_data(weather_data)
-        display_weather(weather)
-    else:
-        print("Error retrieving weather data. Please try again.")
-
 if __name__ == "__main__":
-    main()
+    app.run()
